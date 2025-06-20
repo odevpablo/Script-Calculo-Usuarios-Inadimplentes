@@ -1,74 +1,96 @@
-# Script-Calculo-de-Percentual
+# Notificador de Quantidade de Motos por Filial
 
-## Visão Geral
-Este notebook automatiza a análise de produtividade no tratamento de casos de inadimplência nas filiais, enviando relatórios via Microsoft Teams para os gestores regionais. O processo identifica filiais com baixo desempenho (menos de 15% de casos finalizados) e notifica os responsáveis.
+## Descrição
+Este script processa dados de uma planilha CSV com informações de filiais e classifica as filiais de acordo com os gestores responsáveis. Em seguida, dispara notificações para webhooks configurados no Microsoft Teams, informando a quantidade de motos em cada filial sob responsabilidade de cada gestor.
+
+---
+
+## Funcionalidades
+1. **Carregamento de dados CSV**: Lê informações de um arquivo CSV contendo dados das filiais e suas respectivas quantidades de motos.
+2. **Classificação por gestor**: Determina o gestor responsável por cada filial com base em uma tabela predefinida.
+3. **Notificações automatizadas**: Envia notificações personalizadas para cada gestor via webhooks do Microsoft Teams.
+4. **Agrupamento de informações por gestor**: Consolida os dados de todas as filiais de um gestor em uma única mensagem.
+
+---
 
 ## Pré-requisitos
-- Acesso ao Google Cloud Platform (BigQuery)
-- Python 3.7+
-- Pacotes instalados:
-  ```bash
-  pip install google-cloud-bigquery pymsteams
-  ```
+- Python 3.7 ou superior
+- Bibliotecas necessárias:
+  - `csv` (nativa do Python)
+  - `pymsteams` (instale via `pip install pymsteams`)
 
-## Estrutura do Código
+---
 
-### 1. Configurações Iniciais
-- Instalação de dependências
-- Definição dos webhooks para envio ao Microsoft Teams
-- Conexão com o BigQuery
+## Estrutura do CSV
+O arquivo CSV deve conter pelo menos uma coluna chamada `filial`, onde cada linha representa o nome da filial.
 
-### 2. Funções Principais
+**Exemplo de estrutura:**
+```csv
+filial,quantidade_motos
+Mottu São Paulo,100
+Mottu Rio de Janeiro,80
+Mottu Belo Horizonte,120
+```
 
-**buscar_dados_bq()**
-- Consulta os dados de serviços no BigQuery
-- Filtra por:
-  - Serviços de inadimplência
-  - Eventos dos últimos 2 dias
-  - Casos abertos pelo "Mottu Monitor" ou finalizados
+---
 
-**processar_dados(rows)**
-- Contabiliza eventos por filial
-- Classifica em categorias: "Aberto", "Finalizado" ou "Outro"
+## Configuração
 
-**regionais**
-- Dicionário que mapeia filiais para seus respectivos gestores regionais
+1. **URLs dos Webhooks**  
+   Certifique-se de configurar as URLs corretas dos webhooks do Microsoft Teams no dicionário `webhooks` dentro do código.
 
-**classificar_filial(filial)**
-- Identifica o gestor responsável por cada filial
+2. **Arquivo CSV**  
+   Substitua o valor da variável `caminho_arquivo` com o caminho para o seu arquivo CSV.
 
-**enviar_relatorio_teams(gestor, filiais_data)**
-- Formata e envia mensagem via webhook
-- Inclui:
-  - Nome da filial
-  - Percentual de finalização
-  - Total de casos abertos
-  - Quantidade finalizada
+---
 
-### 3. Fluxo Principal (main())
-1. Executa a consulta no BigQuery
-2. Processa os resultados
-3. Filtra filiais com menos de 15% de casos finalizados
-4. Agrupa por gestor regional
-5. Envia relatórios individuais
+## Como usar
+1. Clone este repositório ou copie o script para o seu ambiente local.
+2. Instale as dependências necessárias com:
+   ```bash
+   pip install pymsteams
+   ```
+3. Prepare o arquivo CSV seguindo a estrutura descrita.
+4. Execute o script:
+   ```bash
+   python script.py
+   ```
 
-## Critérios de Filtro
-O relatório considera apenas filiais que:
-- Possuem percentual de finalização abaixo de 15%
-- Tiveram atividade no período analisado
+---
 
-## Frequência de Execução
-O notebook é projetado para execução diária, analisando os dados do dia anterior.
+## Fluxo do Script
+1. O script carrega os dados do CSV usando a função `carregar_dados_csv`.
+2. Conta a quantidade de motos por filial através de `contar_motos_por_filial`.
+3. Classifica cada filial em um grupo de gestão com base na função `classificar_filial_por_gestor`.
+4. Agrupa mensagens de cada gestor e dispara notificações utilizando `disparar_webhook`.
 
-## Personalização
-Para adaptar o código:
-1. Atualize o dicionário `webhooks` com novos gestores
-2. Ajuste o dicionário `regionais` conforme mudanças na estrutura
-3. Modifique a query SQL para alterar os critérios de filtro
-4. Altere o limiar de 15% conforme necessidades operacionais
+---
 
-## Saída Esperada
-Relatórios enviados via Microsoft Teams contendo:
-- Lista de filiais com baixo desempenho
-- Métricas de produtividade
-- Agrupamento por gestor regional
+## Exemplo de Notificação no Microsoft Teams
+**Título:** Notificação de quantidade de motos por filial  
+**Mensagem:**
+```
+As seguintes filiais possuem motos:
+- Mottu São Paulo (100 motos)
+- Mottu Rio de Janeiro (80 motos)
+```
+
+---
+
+## Observações
+- Certifique-se de que as filiais no CSV correspondem aos nomes usados na classificação de gestores.
+- Se uma filial não for atribuída a nenhum gestor, ela será ignorada.
+
+---
+
+## Possíveis Erros e Soluções
+1. **Erro: Arquivo CSV não encontrado**
+   - Certifique-se de que o caminho do arquivo esteja correto.
+2. **Erro ao enviar webhook**
+   - Verifique a URL do webhook correspondente no dicionário `webhooks`.
+   - Confirme que o Microsoft Teams permite conexões externas para o webhook configurado.
+
+---
+
+## Contato
+Em caso de dúvidas ou sugestões, entre em contato com o desenvolvedor.
